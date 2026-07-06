@@ -1,0 +1,273 @@
+{
+  "proyecto": "Método Gaussiano - Optimización Parametrizada",
+  "descripcion": "Configuración de búsqueda sistemática de parámetros para suma de gaussianas",
+  "fecha_creacion": "2026-07-06",
+
+  "parametros_busqueda": {
+    "n_campanas": {
+      "descripcion": "Número de campanas gaussianas a usar",
+      "tipo": "integer",
+      "rango": [1, 8],
+      "default": 3,
+      "recomendacion": "Testear todas en rango [1, 8]",
+      "notas": "Más campanas = más flexible pero riesgo de overfitting"
+    },
+    "metodo_init": {
+      "descripcion": "Estrategia de inicialización de parámetros",
+      "tipo": "string",
+      "opciones": ["altura", "prominencia", "uniforme", "grid_search"],
+      "default": "altura",
+      "detalles": {
+        "altura": {
+          "como_funciona": "Detecta picos por altura. Selecciona n picos más altos",
+          "ventajas": "Rápido, intuitivo, bueno para curvas claras",
+          "desventajas": "Falla con ruido o picos ocultos",
+          "tiempo": "Rápido"
+        },
+        "prominencia": {
+          "como_funciona": "Detecta picos por aislamiento. Selecciona n picos más prominentes",
+          "ventajas": "Robusto al ruido",
+          "desventajas": "Más lento que altura",
+          "tiempo": "Medio"
+        },
+        "uniforme": {
+          "como_funciona": "Divide el dominio en n segmentos iguales. Toma máximo en cada uno",
+          "ventajas": "Determinista, no requiere detección de picos",
+          "desventajas": "Puede asignar campanas a valles",
+          "tiempo": "Rápido"
+        },
+        "grid_search": {
+          "como_funciona": "Búsqueda en grilla. Divide x en n partes, busca máximo local",
+          "ventajas": "Balance entre robustez y adaptación",
+          "desventajas": "Ligeramente más lento",
+          "tiempo": "Medio"
+        }
+      }
+    },
+    "maxfev": {
+      "descripcion": "Máximo de evaluaciones de función en la optimización",
+      "tipo": "integer",
+      "default": 4000,
+      "rango": [2000, 10000],
+      "notas": "Más alto = mejor convergencia pero más lento. Aumentar si hay divergencias"
+    },
+    "method": {
+      "descripcion": "Algoritmo de optimización para curve_fit",
+      "tipo": "string",
+      "opciones": ["lm", "trf"],
+      "default": "lm",
+      "detalles": {
+        "lm": {
+          "nombre": "Levenberg-Marquardt",
+          "ventajas": "Rápido, converge bien",
+          "desventajas": "Sin límites en parámetros, puede divergir",
+          "recomendacion": "Primaria"
+        },
+        "trf": {
+          "nombre": "Trust Region Reflective",
+          "ventajas": "Con bounds, robusto",
+          "desventajas": "Más lento",
+          "recomendacion": "Secundaria, si lm diverge"
+        }
+      }
+    }
+  },
+
+  "metricas_evaluacion": {
+    "r2": {
+      "descripcion": "Coeficiente de determinación",
+      "formula": "1 - SS_res / SS_tot",
+      "rango": [0, 1],
+      "interpretacion": {
+        "1.0": "Ajuste perfecto",
+        "0.95+": "Excelente",
+        "0.90+": "Muy bueno",
+        "0.80+": "Aceptable",
+        "<0.80": "Pobre"
+      },
+      "uso_primario": true,
+      "notas": "Métrica principal para rankear configuraciones"
+    },
+    "rmse": {
+      "descripcion": "Raíz del error cuadrático medio",
+      "formula": "√(Σ(y_true - y_pred)² / N)",
+      "unidades": "Misma que y",
+      "uso_primario": false,
+      "notas": "Penaliza errores grandes. Complementa R²"
+    },
+    "mae": {
+      "descripcion": "Error absoluto medio",
+      "formula": "Σ|y_true - y_pred| / N",
+      "unidades": "Misma que y",
+      "uso_primario": false,
+      "notas": "Más robusto a outliers. Promedio de desviaciones"
+    },
+    "max_ae": {
+      "descripcion": "Error absoluto máximo",
+      "formula": "max(|y_true - y_pred|)",
+      "unidades": "Misma que y",
+      "uso_primario": false,
+      "notas": "Peor caso. Importante para aplicaciones críticas"
+    }
+  },
+
+  "escala_pixelizacion": {
+    "descripcion": "Niveles de resolución para testeo",
+    "valores": [10, 15, 18, 21, 25],
+    "explicacion": {
+      "10": "Menor resolución. ~200 puntos",
+      "15": "Baja-media. ~300 puntos",
+      "18": "Media. ~360 puntos",
+      "21": "Media-alta. ~420 puntos",
+      "25": "Mayor resolución. ~500 puntos (RECOMENDADO para búsqueda inicial)"
+    },
+    "recomendacion_piloto": "Usar X25 para búsqueda inicial",
+    "recomendacion_completo": "Validación cruzada en todas las escalas (futuro)"
+  },
+
+  "combinaciones_totales": {
+    "por_curva": 32,
+    "formula": "n_campanas × metodos_init = 8 × 4 = 32",
+    "piloto": {
+      "curvas": 5,
+      "total": 160,
+      "tiempo_estimado_minutos": 3
+    },
+    "completo": {
+      "curvas": 500,
+      "total": 16000,
+      "tiempo_estimado_minutos": "15-30"
+    }
+  },
+
+  "archivos_salida": {
+    "piloto_resultados_todas_combinaciones": {
+      "archivo": "piloto_resultados_todas_combinaciones.csv",
+      "filas": 160,
+      "descripcion": "Todos los resultados del piloto (5 curvas × 32 configs)",
+      "uso": "Validar lógica, analizar patrones",
+      "columnas": [
+        "curva_id", "n_campanas", "metodo_init",
+        "r2", "rmse", "mae", "max_ae",
+        "params", "converged", "mensaje"
+      ]
+    },
+    "piloto_configuraciones_ganadoras": {
+      "archivo": "piloto_configuraciones_ganadoras.csv",
+      "filas": 5,
+      "descripcion": "Solo las mejores configuraciones por curva (R² máximo)",
+      "uso": "Identificar patrones ganadores",
+      "columnas": ["idem al anterior"]
+    },
+    "completo_resultados_todas_combinaciones": {
+      "archivo": "completo_resultados_todas_combinaciones.csv",
+      "filas": 16000,
+      "descripcion": "Todos los resultados del dataset completo (500 curvas × 32 configs)",
+      "estado": "futuro",
+      "columnas": ["idem"]
+    },
+    "completo_configuraciones_ganadoras": {
+      "archivo": "completo_configuraciones_ganadoras.csv",
+      "filas": 500,
+      "descripcion": "Mejores configuraciones por curva (dataset completo)",
+      "estado": "futuro",
+      "columnas": ["idem"]
+    }
+  },
+
+  "estructura_directorio": {
+    "metodo_gaussiano": {
+      "README.md": "Documentación principal",
+      "configuracion_parametros.json": "Este archivo",
+      "00_metodologia_gaussiana.ipynb": "Teoría y fundamentación",
+      "01_optimizacion_gaussiana_parametros.ipynb": "Implementación práctica",
+      "modelos": "Modelos entrenados (pkl, joblib)",
+      "resultados": "Tablas CSV de resultados"
+    }
+  },
+
+  "validacion_checklist": [
+    {
+      "item": "R² en rango [0, 1]",
+      "verificacion": "df.r2.min() > 0 and df.r2.max() <= 1"
+    },
+    {
+      "item": "RMSE y MAE positivos",
+      "verificacion": "df.rmse.min() > 0 and df.mae.min() > 0"
+    },
+    {
+      "item": "Desigualdad max_ae ≥ MAE",
+      "verificacion": "(df.max_ae >= df.mae).all()"
+    },
+    {
+      "item": "Desigualdad RMSE ≥ MAE",
+      "verificacion": "(df.rmse >= df.mae).all()"
+    },
+    {
+      "item": "Sin valores NaN",
+      "verificacion": "df[['r2', 'rmse', 'mae']].isna().sum() == 0"
+    },
+    {
+      "item": "Convergencia > 90%",
+      "verificacion": "df.converged.mean() > 0.9"
+    },
+    {
+      "item": "Número correcto de filas",
+      "verificacion": "len(df) == 5 * 32 (piloto) o 500 * 32 (completo)"
+    }
+  ],
+
+  "proximos_pasos": [
+    {
+      "paso": 1,
+      "nombre": "Ejecutar piloto",
+      "archivo": "01_optimizacion_gaussiana_parametros.ipynb",
+      "tiempo": "~3 minutos",
+      "descripcion": "Procesar 5 curvas con 32 configuraciones c/u para validar"
+    },
+    {
+      "paso": 2,
+      "nombre": "Analizar resultados piloto",
+      "archivo": "02_analisis_resultados_piloto.ipynb",
+      "tiempo": "~5 minutos",
+      "descripcion": "Visualizar patrones, heatmaps, estadísticas"
+    },
+    {
+      "paso": 3,
+      "nombre": "Escalar a 500 curvas",
+      "archivo": "01_optimizacion_gaussiana_parametros.ipynb (sección 15)",
+      "tiempo": "~20 minutos",
+      "descripcion": "Procesar dataset completo con búsqueda paramétrica"
+    },
+    {
+      "paso": 4,
+      "nombre": "Análisis de características",
+      "archivo": "03_caracterizacion_gaussiana.ipynb",
+      "tiempo": "~10 minutos",
+      "descripcion": "Correlacionar geometría → config óptima. Entrenar meta-modelo"
+    },
+    {
+      "paso": 5,
+      "nombre": "Comparación con otros métodos",
+      "archivo": "04_comparacion_gaussiana_vs_otros.ipynb",
+      "tiempo": "~15 minutos",
+      "descripcion": "Benchmark contra polinomios y splines. Matriz final de decisión"
+    }
+  ],
+
+  "hipotesis_a_testear": [
+    "H1: Las curvas con baja curvatura prefieren n_campanas bajo (2-3)",
+    "H2: Curvas con alta complejidad prefieren n_campanas alto (6-8)",
+    "H3: 'altura' y 'prominencia' tienen desempeño similar",
+    "H4: R² es predecible desde características geométricas simples",
+    "H5: Diferentes escalas (X10 vs X25) requieren n_campanas diferentes"
+  ],
+
+  "notas_importantes": [
+    "El análisis es DETERMINISTA: mismo seed → mismo resultado",
+    "Inicialización es crítica: cambiar method_init cambia óptimo local encontrado",
+    "R² > 0.99 es posible pero puede indicar overfitting en datos pixelizados",
+    "Usar 'altura' como baseline, luego refinar con otros métodos si falla",
+    "Futura: Paralelizar con joblib.Parallel para 4-8x speedup"
+  ]
+}
