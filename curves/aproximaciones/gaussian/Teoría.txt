@@ -1,0 +1,112 @@
+1: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html
+curve_fit (SciPy) — ideas principales (para ajuste gaussiano)
+
+* Sirve para ajustar una función a datos usando mínimos cuadrados no lineales.
+* Busca parámetros que minimizan el error entre modelo y datos.
+
+Conceptos clave:
+
+* f(x, ...params): tu modelo (x va primero, luego parámetros).
+* xdata: variable independiente (x).
+* ydata: datos observados (y).
+* p0: valores iniciales de los parámetros (MUY importante).
+* popt: parámetros óptimos encontrados.
+* pcov: covarianza estimada de los parámetros (incertidumbre aprox).
+* perr = sqrt(diag(pcov)): error estándar de cada parámetro.
+
+Muy importante en gaussianas:
+
+* No confundir sigma de curve_fit con sigma de la gaussiana:
+
+  * sigma (argumento de curve_fit) = incertidumbre/peso de los datos
+  * sigma del modelo gaussiano = ancho de la campana
+
+Buenas prácticas:
+
+* Dar un buen p0 (si no, puede converger mal o fallar).
+* Usar bounds para restringir parámetros (ej. amplitud > 0, sigma > 0).
+* Revisar visualmente el ajuste (no confiar solo en números).
+* Usar datos y modelo en float64.
+* Evitar parámetros redundantes (modelo sobreparametrizado).
+
+Métodos:
+
+* lm: rápido, pero sin bounds.
+* trf / dogbox: permiten bounds.
+
+Alertas:
+
+* Si parámetros tienen escalas muy distintas, el ajuste puede fallar.
+* pcov grande o mal condicionada => resultados poco confiables.
+* curve_fit hace optimización local (puede caer en mínimo local).
+
+En resumen:
+* Modelo correcto + buen p0 + bounds + revisar popt/pcov = ajuste mucho más confiable.
+
+
+----------------------------------------------------
+----------------------------------------------------
+----------------------------------------------------
+
+
+2: https://education.molssi.org/python-data-analysis/03-data-fitting/index.html?utm_source=chatgpt.com
+3: https://www.ni.com/docs/en-US/bundle/diadem/page/genmaths/genmaths/calc_gaussianpeakfit.htm?srsltid=AfmBOoo8CKAcwwbiV2JTq3U8aXAeGyJhYoEdnZVm7mY_bzVV-SzKtcHW&
+
+Aproximación de curvas con método gaussiano — ideas principales
+
+* Es una técnica para ajustar una curva gaussiana (forma de campana) a un conjunto de datos.
+* Se usa cuando los datos presentan uno o más picos.
+
+Idea principal:
+
+* Encontrar los parámetros de la gaussiana que mejor se ajustan a los datos minimizando el error.
+
+Modelo gaussiano:
+
+* y = A * exp(-((x - mu)^2) / (2*sigma^2)) + c
+
+Parámetros:
+
+* A: amplitud (altura)
+* mu: media / centro del pico
+* sigma: ancho o dispersión
+* c: offset o línea base
+
+Conceptos clave:
+
+* Residual = y_observado - y_modelo
+* Se minimiza la suma de residuales al cuadrado (mínimos cuadrados)
+* El ajuste es una aproximación
+
+Cuándo funciona mejor:
+
+* Cuando los datos tienen forma aproximadamente gaussiana
+* Cuando hay poco ruido y pocos valores atípicos (outliers)
+* Cuando se eligen buenos valores iniciales
+
+Aplicaciones:
+
+* Espectros (Raman, IR, masas)
+* Señales experimentales
+* Estadística y distribuciones
+* Procesamiento de imágenes/datos
+
+Ventajas:
+
+* Simple, útil e interpretable
+* Pocos parámetros con significado claro
+
+Limitaciones:
+
+* No ajusta bien curvas no gaussianas
+* Puede fallar con mucho ruido o malos valores iniciales
+* Si hay varios picos, puede requerir suma de gaussianas
+
+Resumen:
+
+* Aproximación gaussiana = representar datos con una campana (o varias) para describir su forma de manera simple.
+
+
+
+
+Aún nos queda conectar con mi github y el material la sección: Proyectos Destacados. pero para etso no sé qué pasarte para que lo conectes bien. De los proyectos que están allí, ya enlisté que tiene de material cada proyecto (todos los proyectos tienen código, pero algunos tienen algo más): Okay, qué necesitas del proyecto del github para que lo enlaces y pongas cada uno en su proyecto? Algunos tienen vídeo de demo (Cubero Smart Chicken, ), otras tienen página web (no desplegada, tal vez como html pueda verse o no sé) (Emergency Routing and Hospital Planning in CDMX, CDMX Public Transport Network Robustness Analysis - está también tiene una presentación canva guardada como pdf-,Commercial Platform for Pizzeria,), otras tienen dashboard en power bi (Real-time Temperature Analysis Platform), sólo código (Credit Risk Prediction with Deep Learning, Transformers for NLP and Time Series), código y pdf de presentación (Childhood Cancer Environmental Analysis), presentación pdf y power bi (Statistical Analysis for TRYAD)
